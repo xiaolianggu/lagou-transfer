@@ -111,8 +111,6 @@ public class TransferServlet extends HttpServlet {
         try {
             // 保存在内存
             contextConfig.load(inputStream);
-
-            System.out.println("[INFO-1] property file has been saved in contextConfig.");
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -133,15 +131,9 @@ public class TransferServlet extends HttpServlet {
      * @param resp 响应
      */
     private void doDispatch(HttpServletRequest req, HttpServletResponse resp) throws InvocationTargetException, IllegalAccessException {
-
         String url = req.getRequestURI();
-
         String contextPath = req.getContextPath();
-
         url = url.replaceAll(contextPath, "").replaceAll("/+", "/");
-
-        System.out.println("[INFO-7] request url-->" + url);
-
         if (!this.handlerMapping.containsKey(url)) {
             try {
                 resp.getWriter().write("404 NOT FOUND!!");
@@ -150,20 +142,11 @@ public class TransferServlet extends HttpServlet {
                 e.printStackTrace();
             }
         }
-
         Method method = this.handlerMapping.get(url);
-
-        System.out.println("[INFO-7] method-->" + method);
-
-
         String beanName = toLowerFirstCase(method.getDeclaringClass().getSimpleName());
-
-        System.out.println("[INFO-7] iocMap.get(beanName)->" + iocMapThree.get(beanName));
-
         // 第一个参数是获取方法，后面是参数，多个参数直接加，按顺序对应
         method.invoke(iocMapThree.get(beanName), req, resp);
 
-        System.out.println("[INFO-7] method.invoke put {" + iocMapThree.get(beanName) + "}.");
     }
 
     /**
@@ -189,7 +172,6 @@ public class TransferServlet extends HttpServlet {
             MyAutowired myAutowired = field.getAnnotation(MyAutowired.class);
             String beanName = myAutowired.value().trim();
             if ("".equals(beanName)) {
-                System.out.println("[INFO] myAutowired.value() is null----"+field.getType().getName());
                 beanName = field.getType().getSimpleName();
             }
             field.setAccessible(true);
@@ -200,7 +182,6 @@ public class TransferServlet extends HttpServlet {
             }
             try {
                 field.set(object, ProxyFactory.getInstance().getCglibProxy(obj));//生成代理
-                System.out.println("[INFO-4] field set {" + object + "} - {" + obj + "}.");
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
@@ -238,7 +219,6 @@ public class TransferServlet extends HttpServlet {
 
                     // 保存在 ioc 容器
                     iocMapThree.put(beanName, instance);
-                    System.out.println("[INFO-3] {" + beanName + "} has been saved in iocMap.");
 
                 } else if (clazz.isAnnotationPresent(MyService.class)) {
                     String beanName = toLowerFirstCase(clazz.getSimpleName());
@@ -248,14 +228,12 @@ public class TransferServlet extends HttpServlet {
                     }
                     Object instance = clazz.newInstance();
                     iocMapThree.put(beanName, instance);
-                    System.out.println("[INFO-3] {" + beanName + "} has been saved in iocMap.");
                     // 找类的接口
                     for (Class<?> i : clazz.getInterfaces()) {
                         if (iocMapThree.containsKey(i.getName())) {
                             throw new Exception("The Bean Name Is Exist.");
                         }
                         iocMapThree.put(toLowerFirstCase(i.getSimpleName()), instance);
-                        System.out.println("[INFO-3] {" + i.getName() + "} has been saved in iocMap.");
                     }
                 }
             }
@@ -282,18 +260,15 @@ public class TransferServlet extends HttpServlet {
         File classPath = new File(resourcePath.getFile());
         for (File file : classPath.listFiles()) {
             if (file.isDirectory()) {
-                System.out.println("[INFO-2] {" + file.getName() + "} is a directory.");
                 // 子目录递归
                 doScanner(scanPackage + "." + file.getName());
             } else {
                 if (!file.getName().endsWith(".class")) {
-                    System.out.println("[INFO-2] {" + file.getName() + "} is not a class file.");
                     continue;
                 }
                 String className = (scanPackage + "." + file.getName()).replace(".class", "");
                 // 保存在内容
                 classNameList.add(className);
-                System.out.println("[INFO-2] {" + className + "} has been saved in classNameList.");
             }
         }
     }
@@ -319,7 +294,6 @@ public class TransferServlet extends HttpServlet {
                 MyRequestMapping myRequestMapping = method.getAnnotation(MyRequestMapping.class);
                 String url = ("/" + baseUrl + "/" + myRequestMapping.value()).replaceAll("/+", "/");
                 handlerMapping.put(url, method);
-                System.out.println("[INFO-5] handlerMapping put {" + url + "} - {" + method + "}.");
             }
         }
 
