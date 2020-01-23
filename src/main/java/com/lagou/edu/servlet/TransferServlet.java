@@ -54,8 +54,10 @@ public class TransferServlet extends HttpServlet {
     Map<String, Object> iocMapOne = new HashMap<String, Object>();
 
     Map<String, Method> handlerMapping = new HashMap<String, Method>();
-
-
+    /**
+     * 标记对象是否正在创建，防止递归死循环
+     */
+    Map<String, Integer> isCreated = new HashMap<String, Integer>();
     // 1. 实例化service层对象
     //private TransferService transferService = new TransferServiceImpl();
     //private TransferService transferService = (TransferService) BeanFactory.getBean("transferService");
@@ -172,12 +174,13 @@ public class TransferServlet extends HttpServlet {
             return;
         }
         for (Map.Entry<String, Object> entry : iocMapThree.entrySet()) {
-            doAutowired(entry);
+            doAutowired(entry.getKey(),entry.getValue());
         }
     }
 
-    private void doAutowired(Map.Entry<String, Object> entry) {
-        Field[] fields = entry.getValue().getClass().getDeclaredFields();
+    private void doAutowired(String key,Object object) {
+        isCreated.put(key,1);
+        Field[] fields = object.getClass().getDeclaredFields();
         for (Field field : fields) {
             if (!field.isAnnotationPresent(MyAutowired.class)) {
                 continue;
@@ -190,10 +193,15 @@ public class TransferServlet extends HttpServlet {
                 beanName = field.getType().getSimpleName();
             }
             field.setAccessible(true);
+            beanName = toLowerFirstCase(beanName);
             Object obj = getBean(beanName);
+            if(isCreated.get(beanName)==null){
+                doAutowired(beanName,obj);
+            }
+
             try {
-                field.set(entry.getValue(), obj);
-                System.out.println("[INFO-4] field set {" + entry.getValue() + "} - {" + obj + "}.");
+                field.set(object, obj);
+                System.out.println("[INFO-4] field set {" + object + "} - {" + obj + "}.");
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
@@ -201,11 +209,7 @@ public class TransferServlet extends HttpServlet {
     }
 
     private Object getBean(String beanName){
-        beanName = toLowerFirstCase(beanName);
         Object obj = iocMapThree.get(beanName);
-        if(obj == null){
-            obj = iocMapThree.get(beanName);
-        }
         if(obj == null){
             obj = iocMapTwo.get(beanName);
             if(obj == null){
