@@ -20,17 +20,14 @@ import java.lang.reflect.Proxy;
  * 代理对象工厂：生成代理对象的
  */
 
-@MyService
 public class ProxyFactory {
 
-   @MyAutowired
-    private TransactionManager transactionManager;
 
     /*public void setTransactionManager(TransactionManager transactionManager) {
         this.transactionManager = transactionManager;
     }*/
 
-    /*private ProxyFactory(){
+    public ProxyFactory(){
 
     }
 
@@ -38,7 +35,7 @@ public class ProxyFactory {
 
     public static ProxyFactory getInstance() {
         return proxyFactory;
-    }*/
+    }
 
 
 
@@ -59,20 +56,20 @@ public class ProxyFactory {
                         try{
                             // 开启事务(关闭事务的自动提交)
                             if(myTransactional != null){
-                                transactionManager.beginTransaction();
+                                TransactionManager.getInstance().beginTransaction();
                             }
 
                             result = method.invoke(obj,args);
 
                             // 提交事务
                             if(myTransactional != null){
-                                transactionManager.commit();
+                                TransactionManager.getInstance().commit();
                             }
                         }catch (Exception e) {
                             e.printStackTrace();
                             // 回滚事务
                             if(myTransactional != null){
-                                transactionManager.rollback();
+                                TransactionManager.getInstance().rollback();
                             }
 
                             // 抛出异常便于上层servlet捕获
@@ -101,7 +98,7 @@ public class ProxyFactory {
                 try{
                     // 开启事务(关闭事务的自动提交)
                     if(myTransactional != null){
-                        transactionManager.beginTransaction();
+                        TransactionManager.getInstance().beginTransaction();
                     }
 
 
@@ -109,13 +106,13 @@ public class ProxyFactory {
 
                     // 提交事务
                     if(myTransactional != null){
-                        transactionManager.commit();
+                        TransactionManager.getInstance().commit();
                     }
                 }catch (Exception e) {
                     e.printStackTrace();
                     // 回滚事务
                     if(myTransactional != null){
-                        transactionManager.rollback();
+                        TransactionManager.getInstance().rollback();
                     }
                     // 抛出异常便于上层servlet捕获
                     throw e;

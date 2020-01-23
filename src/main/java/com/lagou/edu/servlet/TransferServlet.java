@@ -196,16 +196,16 @@ public class TransferServlet extends HttpServlet {
             beanName = toLowerFirstCase(beanName);
             Object obj = getBean(beanName);
             if(isCreated.get(beanName)==null){
-                doAutowired(beanName,obj);
+                //doAutowired(beanName,obj);
             }
-
             try {
-                field.set(object, obj);
+                field.set(object, ProxyFactory.getInstance().getCglibProxy(obj));//生成代理
                 System.out.println("[INFO-4] field set {" + object + "} - {" + obj + "}.");
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
         }
+
     }
 
     private Object getBean(String beanName){
@@ -219,7 +219,9 @@ public class TransferServlet extends HttpServlet {
         return obj;
     }
 
+    private void removeThreeCache(String beanName){
 
+    }
     /**
      * 3、初始化 IOC 容器，将所有相关的类实例保存到 IOC 容器中
      */
